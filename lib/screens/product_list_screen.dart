@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart'; // Ensure this path is correct
+import '../services/cart_service.dart';
+import 'addToCard_screen.dart';
 import 'product_detail_screen.dart'; // Needed for navigation to details
 
 class ProductListScreen extends StatefulWidget {
@@ -139,13 +141,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: _buildBikeCard(
                             name: product['name'] ?? 'Unknown Bike',
                             type: product['topSpeed'] ?? '',
-                            price: "\$${product['price'] ?? ''}",
-                            engine: product['technicalSpecs']?['engineType'] ??
-                                product['engine'] ??
-                                '',
-                            power: product['power'] ?? '',
+                            price: product['price']?.toString() ?? '',
                             imageUrl: imageUrl,
                             category: categoryName,
+                            onAddCart: () {
+                              final priceStr =
+                                  product['price']?.toString() ?? '0';
+                              final doublePrice =
+                                  double.tryParse(priceStr) ?? 0.0;
+                              CartService().addToCart(CartItem(
+                                id: product['_id']?.toString() ??
+                                    product['id']?.toString() ??
+                                    DateTime.now().toString(),
+                                name: product['name'] ?? 'Unknown Bike',
+                                edition: categoryName.isNotEmpty
+                                    ? categoryName
+                                    : 'Standard Edition',
+                                price: doublePrice,
+                                imageUrl: imageUrl,
+                              ));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('${product['name']} added to cart!'),
+                                  backgroundColor: const Color(0xFF7B5A96),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
@@ -179,7 +202,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddToCardScreen()),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -344,10 +375,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     required String name,
     required String type,
     required String price,
-    required String engine,
-    required String power,
     required String imageUrl,
     required String category,
+    required VoidCallback onAddCart,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -396,11 +426,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.bold)),
-                  Text(price,
-                      style: const TextStyle(
-                          color: Color(0xFF90EE90),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("\$$price",
+                          style: const TextStyle(
+                              color: Color(0xFF90EE90),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold)),
+                      GestureDetector(
+                        onTap: onAddCart,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7B5A96),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.add_shopping_cart,
+                              color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Text(type,
                       maxLines: 1,
@@ -414,16 +461,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         style:
                             const TextStyle(color: Colors.grey, fontSize: 10)),
                   ],
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        _specBoxSmall("Engine", engine),
-                        const SizedBox(width: 6),
-                        _specBoxSmall("Power", power),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -467,32 +504,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 );
               },
             ),
-    );
-  }
-
-  Widget _specBoxSmall(String title, String value) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title,
-                style: const TextStyle(color: Colors.grey, fontSize: 9)),
-            Text(value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
     );
   }
 }
