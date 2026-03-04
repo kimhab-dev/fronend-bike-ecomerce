@@ -10,11 +10,19 @@ class ApiService {
   /// [categoryId] is the string identifier (e.g. MongoDB ObjectId)
   /// used by the backend. When provided the request will include
   /// `?category=<id>`; if null we fetch all products.
-  static Future<List<dynamic>> getProducts({String? categoryId}) async {
+  static Future<List<dynamic>> getProducts(
+      {String? categoryId, String? search}) async {
     String url = "$baseUrl/products";
+    bool hasQuery = false;
+
     if (categoryId != null && categoryId.isNotEmpty) {
-      // encode in case the id contains any characters needing escape
       url += "?category=${Uri.encodeComponent(categoryId)}";
+      hasQuery = true;
+    }
+
+    if (search != null && search.isNotEmpty) {
+      url += hasQuery ? "&" : "?";
+      url += "search=${Uri.encodeComponent(search)}";
     }
 
     final response = await http.get(Uri.parse(url));
@@ -72,4 +80,6 @@ class ApiService {
       throw Exception("Failed to load product");
     }
   }
+
+  // search screen
 }

@@ -17,6 +17,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   /// (i.e. "All"). We're using a string because IDs come back as
   /// Mongo ObjectIds (e.g. "69a5ba3bc2d495f0cf9365ad").
   String? selectedCategoryId;
+  String? searchQuery;
 
   @override
   void initState() {
@@ -25,6 +26,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     categories = ApiService.getCategories();
     products = ApiService.getProducts();
     selectedCategoryId = null; // start unfiltered
+    searchQuery = null;
   }
 
   @override
@@ -156,7 +158,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -212,9 +213,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
         color: Colors.white.withOpacity(0.07),
         borderRadius: BorderRadius.circular(15),
       ),
-      child: const TextField(
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
+      child: TextField(
+        style: const TextStyle(color: Colors.white),
+        onChanged: (value) {
+          setState(() {
+            searchQuery = value.isEmpty ? null : value;
+            products = ApiService.getProducts(
+              categoryId: selectedCategoryId,
+              search: searchQuery,
+            );
+          });
+        },
+        decoration: const InputDecoration(
           prefixIcon: Icon(Icons.search, color: Colors.grey),
           hintText: "Search bikes...",
           hintStyle: TextStyle(color: Colors.grey),
@@ -268,7 +278,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           );
         } else if (snapshot.hasError) {
-          return SizedBox(
+          return const SizedBox(
             height: 40,
             child: Center(
               child: Text('Error loading categories',
@@ -282,7 +292,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         final cats = <Map<String, dynamic>>[
           {'id': null, 'name': 'All'}
         ];
-        cats.addAll(catsData.map((c) {
+        cats.addAll(catsData.map<Map<String, dynamic>>((c) {
           final rawId = c['id'] ?? c['_id'];
           return {'id': rawId?.toString(), 'name': c['name']?.toString() ?? ''};
         }));
@@ -301,7 +311,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 onTap: () {
                   setState(() {
                     selectedCategoryId = catId;
-                    products = ApiService.getProducts(categoryId: catId);
+                    products = ApiService.getProducts(
+                      categoryId: catId,
+                      search: searchQuery,
+                    );
                   });
                 },
                 child: Container(
@@ -480,24 +493,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white38,
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 0,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border), label: "Saved"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline), label: "Profile"),
-      ],
     );
   }
 }
