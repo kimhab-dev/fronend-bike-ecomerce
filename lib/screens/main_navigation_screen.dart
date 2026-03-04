@@ -14,9 +14,10 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  // The list of screens to switch between
-  final List<Widget> _screens = [
-    const ProductListScreen(), // Home (Your bike list)
+  late final List<Widget> _screens = [
+    ProductListScreen(onSearchTap: () {
+      if (mounted) setState(() => _currentIndex = 1);
+    }), // Home (Your bike list)
     BikeSearchScreen(),
     const ProductSaveScreen(), // Saved (Wishlist)
     const ProfileUserScreen(), // Profile (User info)

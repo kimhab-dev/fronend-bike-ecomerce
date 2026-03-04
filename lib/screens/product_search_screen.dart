@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/cart_service.dart';
+import '../services/wishlist_service.dart';
+import 'addToCard_screen.dart';
 import 'product_detail_screen.dart';
 
 class BikeSearchScreen extends StatefulWidget {
@@ -65,9 +68,49 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
         title: Text("BIG BIKE",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(
-              icon: Icon(Icons.shopping_cart_outlined, color: Colors.white),
-              onPressed: () {}),
+          ValueListenableBuilder<List<CartItem>>(
+            valueListenable: CartService().itemsNotifier,
+            builder: (context, items, _) {
+              final int totalItems =
+                  items.fold(0, (sum, item) => sum + item.quantity);
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined,
+                        color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AddToCardScreen()),
+                      );
+                    },
+                  ),
+                  if (totalItems > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          totalItems.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -263,16 +306,68 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
                     ],
                   ),
                 ),
-                Column(
-                  children: [
-                    Icon(Icons.favorite_border, color: Colors.grey),
-                    const SizedBox(height: 15),
-                    CircleAvatar(
-                      backgroundColor: Colors.grey[800],
-                      child: Icon(Icons.shopping_cart_outlined,
-                          color: Colors.white, size: 20),
-                    )
-                  ],
+                ValueListenableBuilder<List<Map<String, dynamic>>>(
+                  valueListenable: WishlistService().itemsNotifier,
+                  builder: (context, wishlistItems, _) {
+                    final String bikeId =
+                        bike['_id']?.toString() ?? bike['id']?.toString() ?? '';
+                    final bool isSaved = WishlistService().isSaved(bikeId);
+
+                    return Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            WishlistService()
+                                .toggleWishlist(bike as Map<String, dynamic>);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isSaved
+                                    ? '${bike['name']} removed from wishlist'
+                                    : '${bike['name']} saved to wishlist!'),
+                                backgroundColor: const Color(0xFF7B5A96),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: Icon(
+                            isSaved ? Icons.favorite : Icons.favorite_border,
+                            color: isSaved ? Colors.redAccent : Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        GestureDetector(
+                          onTap: () {
+                            final priceStr = bike['price']?.toString() ?? '0';
+                            final doublePrice =
+                                double.tryParse(priceStr) ?? 0.0;
+                            CartService().addToCart(CartItem(
+                              id: bikeId.isNotEmpty
+                                  ? bikeId
+                                  : DateTime.now().toString(),
+                              name: bike['name'] ?? 'Unknown',
+                              edition: categoryName.isNotEmpty
+                                  ? categoryName
+                                  : 'Standard Edition',
+                              price: doublePrice,
+                              imageUrl: imageUrl,
+                            ));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${bike['name']} added to cart!'),
+                                backgroundColor: const Color(0xFF7B5A96),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: Colors.grey[800],
+                            child: const Icon(Icons.shopping_cart_outlined,
+                                color: Colors.white, size: 20),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 )
               ],
             ),

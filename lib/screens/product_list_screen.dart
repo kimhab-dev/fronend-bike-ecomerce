@@ -3,9 +3,11 @@ import '../services/api_service.dart'; // Ensure this path is correct
 import '../services/cart_service.dart';
 import 'addToCard_screen.dart';
 import 'product_detail_screen.dart'; // Needed for navigation to details
+import 'product_search_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({super.key});
+  final VoidCallback? onSearchTap;
+  const ProductListScreen({super.key, this.onSearchTap});
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
@@ -24,11 +26,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
-    // start both requests
+    // Remove internal products and search logic from init state
     categories = ApiService.getCategories();
     products = ApiService.getProducts();
     selectedCategoryId = null; // start unfiltered
-    searchQuery = null;
   }
 
   @override
@@ -202,12 +203,46 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddToCardScreen()),
+          ValueListenableBuilder<List<CartItem>>(
+            valueListenable: CartService().itemsNotifier,
+            builder: (context, items, _) {
+              final int totalItems =
+                  items.fold(0, (sum, item) => sum + item.quantity);
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined,
+                        color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AddToCardScreen()),
+                      );
+                    },
+                  ),
+                  if (totalItems > 0)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          totalItems.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -239,28 +274,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: TextField(
-        style: const TextStyle(color: Colors.white),
-        onChanged: (value) {
-          setState(() {
-            searchQuery = value.isEmpty ? null : value;
-            products = ApiService.getProducts(
-              categoryId: selectedCategoryId,
-              search: searchQuery,
-            );
-          });
-        },
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.search, color: Colors.grey),
-          hintText: "Search bikes...",
-          hintStyle: TextStyle(color: Colors.grey),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 15),
+    return GestureDetector(
+      onTap: () {
+        if (widget.onSearchTap != null) {
+          widget.onSearchTap!();
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => BikeSearchScreen()),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const TextField(
+          enabled: false,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.search, color: Colors.grey),
+            hintText: "Search bikes...",
+            hintStyle: TextStyle(color: Colors.grey),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(vertical: 15),
+          ),
         ),
       ),
     );
