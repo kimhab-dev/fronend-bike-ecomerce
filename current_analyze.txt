@@ -1,0 +1,6 @@
+﻿Analyzing 2 items...                                            
+
+   info - Use interpolation to compose strings and values - lib\services\cart_service.dart:77:22 - prefer_interpolation_to_compose_strings
+   info - Don't invoke 'print' in production code - lib\services\cart_service.dart:94:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cart_service.dart:116:7 - avoid_print
+

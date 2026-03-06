@@ -28,7 +28,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     super.initState();
     // Remove internal products and search logic from init state
     categories = ApiService.getCategories();
-    products = ApiService.getProducts();
+    products = ApiService.getProducts(limit: 6, page: 1, sort: "price_desc");
     selectedCategoryId = null; // start unfiltered
   }
 

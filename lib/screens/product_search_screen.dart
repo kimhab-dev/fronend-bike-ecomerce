@@ -6,8 +6,10 @@ import 'addToCard_screen.dart';
 import 'product_detail_screen.dart';
 
 class BikeSearchScreen extends StatefulWidget {
+  const BikeSearchScreen({super.key});
+
   @override
-  _BikeSearchScreenState createState() => _BikeSearchScreenState();
+  State<BikeSearchScreen> createState() => _BikeSearchScreenState();
 }
 
 class _BikeSearchScreenState extends State<BikeSearchScreen> {
@@ -16,6 +18,12 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
   String? selectedCategoryId;
   String searchQuery = "";
   bool isLoading = true;
+
+  double? minPrice;
+  double? maxPrice;
+  String? sort;
+  int page = 1;
+  int limit = 6;
 
   @override
   void initState() {
@@ -47,6 +55,11 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
             ? null
             : selectedCategoryId,
         search: searchQuery.isEmpty ? null : searchQuery,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        sort: sort,
+        page: page,
+        limit: limit,
       );
       setState(() {
         products = data;
@@ -165,15 +178,141 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Color(0xFF2D2433),
-            borderRadius: BorderRadius.circular(12),
+        GestureDetector(
+          onTap: _showFilterBottomSheet,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D2433),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.tune, color: Colors.white),
           ),
-          child: Icon(Icons.tune, color: Colors.white),
-        )
+        ),
       ],
+    );
+  }
+
+  void _showFilterBottomSheet() {
+    TextEditingController minCtrl =
+        TextEditingController(text: minPrice?.toString() ?? '');
+    TextEditingController maxCtrl =
+        TextEditingController(text: maxPrice?.toString() ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF251C2B),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Filters",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: minCtrl,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: "Min Price",
+                              labelStyle: const TextStyle(color: Colors.grey),
+                              filled: true,
+                              fillColor: const Color(0xFF2D2433),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: TextField(
+                            controller: maxCtrl,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: "Max Price",
+                              labelStyle: const TextStyle(color: Colors.grey),
+                              filled: true,
+                              fillColor: const Color(0xFF2D2433),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: sort,
+                      dropdownColor: const Color(0xFF2D2433),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: "Sort By",
+                        labelStyle: const TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: const Color(0xFF2D2433),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text("None")),
+                        DropdownMenuItem(
+                            value: "price_asc",
+                            child: Text("Price: Low to High")),
+                        DropdownMenuItem(
+                            value: "price_desc",
+                            child: Text("Price: High to Low")),
+                      ],
+                      onChanged: (val) => setModalState(() => sort = val),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            minPrice = double.tryParse(minCtrl.text);
+                            maxPrice = double.tryParse(maxCtrl.text);
+                          });
+                          Navigator.pop(ctx);
+                          _fetchProducts();
+                        },
+                        child: const Text("Apply Filters",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

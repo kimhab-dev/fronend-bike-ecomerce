@@ -10,22 +10,44 @@ class ApiService {
   /// [categoryId] is the string identifier (e.g. MongoDB ObjectId)
   /// used by the backend. When provided the request will include
   /// `?category=<id>`; if null we fetch all products.
-  static Future<List<dynamic>> getProducts(
-      {String? categoryId, String? search}) async {
-    String url = "$baseUrl/products";
-    bool hasQuery = false;
+  static Future<List<dynamic>> getProducts({
+    String? categoryId,
+    String? search,
+    double? minPrice,
+    double? maxPrice,
+    String? sort,
+    int? page,
+    int? limit,
+  }) async {
+    final Map<String, String> queryParams = {};
 
     if (categoryId != null && categoryId.isNotEmpty) {
-      url += "?category=${Uri.encodeComponent(categoryId)}";
-      hasQuery = true;
+      queryParams['category'] = categoryId;
     }
-
     if (search != null && search.isNotEmpty) {
-      url += hasQuery ? "&" : "?";
-      url += "search=${Uri.encodeComponent(search)}";
+      queryParams['search'] = search;
+    }
+    if (minPrice != null) {
+      queryParams['minPrice'] = minPrice.toString();
+    }
+    if (maxPrice != null) {
+      queryParams['maxPrice'] = maxPrice.toString();
+    }
+    if (sort != null && sort.isNotEmpty) {
+      queryParams['sort'] = sort;
+    }
+    if (page != null) {
+      queryParams['page'] = page.toString();
+    }
+    if (limit != null) {
+      queryParams['limit'] = limit.toString();
     }
 
-    final response = await http.get(Uri.parse(url));
+    final uri = Uri.parse("$baseUrl/products").replace(
+      queryParameters: queryParams.isEmpty ? null : queryParams,
+    );
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -81,5 +103,36 @@ class ApiService {
     }
   }
 
-  // search screen
+  static Future<List<dynamic>> getCart() async {
+    final response = await http.get(Uri.parse("$baseUrl/cart"));
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded.containsKey('data')) {
+        return decoded['data'] as List<dynamic>;
+      }
+      if (decoded is Map && decoded.containsKey('items')) {
+        return decoded['items'] as List<dynamic>;
+      }
+      if (decoded is List) {
+        return decoded;
+      }
+      return [];
+    } else {
+      throw Exception("Failed to load cart");
+    }
+  }
+
+  static Future<void> addToCart(String productId, int quantity) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/cart"), // Endpoint for add to cart
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "productId": productId,
+        "quantity": quantity,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception("Failed to add to cart");
+    }
+  }
 }
