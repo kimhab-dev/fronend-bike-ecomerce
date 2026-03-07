@@ -164,4 +164,22 @@ class ApiService {
       throw Exception("Failed to toggle wishlist item");
     }
   }
+
+  static Future<Map<String, dynamic>> login(
+      String email, String password) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/users/login"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "email": email,
+        "password": password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to login");
+    }
+  }
 }
