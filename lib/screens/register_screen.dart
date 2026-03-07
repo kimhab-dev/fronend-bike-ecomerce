@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
-import 'main_navigation_screen.dart';
-import 'register_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -25,18 +25,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
+    final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
+        const SnackBar(content: Text('Please fill out all fields')),
       );
       return;
     }
@@ -44,17 +46,21 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ApiService.login(email, password);
+      await ApiService.register(name, email, password);
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Registration successful! Please login.')),
+        );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: ${e.toString()}')),
+          SnackBar(content: Text('Registration failed: ${e.toString()}')),
         );
       }
     } finally {
@@ -118,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // --- Header Text ---
                 const Text(
-                  'Welcome Back',
+                  'Create Account',
                   style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -126,10 +132,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in to continue your journey',
+                  'Sign up to get started',
                   style: TextStyle(fontSize: 16, color: _secondaryText),
                 ),
                 const SizedBox(height: 40),
+
+                // --- Name Field ---
+                _buildLabel('Full Name'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  hint: 'Enter your full name',
+                  controller: _nameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 20),
 
                 // --- Email Field ---
                 _buildLabel('Email'),
@@ -145,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildLabel('Password'),
                 const SizedBox(height: 8),
                 _buildTextField(
-                  hint: 'Enter your password',
+                  hint: 'Create a password',
                   controller: _passwordController,
                   isPassword: true,
                   suffix: IconButton(
@@ -160,24 +176,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         () => _isPasswordVisible = !_isPasswordVisible),
                   ),
                 ),
+                const SizedBox(height: 40),
 
-                // --- Forgot Password ---
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: Text('Forgot Password?',
-                        style: TextStyle(color: _secondaryText)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // --- Sign In Button ---
+                // --- Sign Up Button ---
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryButton,
                       shape: RoundedRectangleBorder(
@@ -189,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Sign In',
+                              Text('Sign Up',
                                   style: TextStyle(
                                       fontSize: 18, color: Colors.white)),
                               SizedBox(width: 8),
@@ -199,53 +205,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 30),
-
-                // --- Divider ---
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.white10)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('Or continue with',
-                          style: TextStyle(color: _secondaryText)),
-                    ),
-                    Expanded(child: Divider(color: Colors.white10)),
-                  ],
-                ),
-                const SizedBox(height: 30),
-
-                // --- Social Buttons ---
-                Row(
-                  children: [
-                    Expanded(
-                        child: _buildSocialButton(
-                            label: 'Google', icon: Icons.g_mobiledata)),
-                    const SizedBox(width: 16),
-                    Expanded(
-                        child: _buildSocialButton(
-                            label: 'Facebook', icon: Icons.facebook)),
-                  ],
-                ),
                 const SizedBox(height: 40),
 
-                // --- Sign Up Link ---
+                // --- Login Link ---
                 Center(
                   child: GestureDetector(
                     onTap: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const RegisterScreen()),
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
                     child: RichText(
                       text: TextSpan(
-                        text: "Don't have an account? ",
+                        text: "Already have an account? ",
                         style: TextStyle(color: _secondaryText),
                         children: const [
                           TextSpan(
-                            text: 'Sign Up',
+                            text: 'Sign In',
                             style: TextStyle(
                                 color: Color(0xFFC084FC),
                                 fontWeight: FontWeight.bold),
@@ -295,28 +272,6 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
-      ),
-    );
-  }
-
-  // Helper Widget for Social Buttons
-  Widget _buildSocialButton({required String label, required IconData icon}) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: _inputFill,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 8),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
-        ],
       ),
     );
   }

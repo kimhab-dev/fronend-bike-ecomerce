@@ -182,4 +182,24 @@ class ApiService {
       throw Exception("Failed to login");
     }
   }
+
+  static Future<Map<String, dynamic>> register(
+      String name, String email, String password) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/users/register"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "name": name,
+        "email": email,
+        "password": password,
+      }),
+    );
+
+    // Some APIs return 201 Created for registration
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to register");
+    }
+  }
 }
