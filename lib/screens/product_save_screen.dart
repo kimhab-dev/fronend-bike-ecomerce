@@ -3,6 +3,7 @@ import '../services/wishlist_service.dart';
 import '../services/cart_service.dart';
 import '../services/api_service.dart';
 import 'product_detail_screen.dart';
+import '../widgets/custom_app_bar.dart';
 
 class ProductSaveScreen extends StatelessWidget {
   const ProductSaveScreen({super.key});
@@ -11,37 +12,7 @@ class ProductSaveScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF100A16),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF100A16),
-        elevation: 0,
-        title: RichText(
-          text: const TextSpan(
-            children: [
-              TextSpan(
-                  text: 'BIG',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                      letterSpacing: 1.0)),
-              TextSpan(
-                  text: 'BIKE',
-                  style: TextStyle(
-                      color: Color(0xFF8B5A8C),
-                      fontWeight: FontWeight.normal,
-                      fontSize: 22,
-                      letterSpacing: 1.0)),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: const CustomAppBar(),
       body: ValueListenableBuilder<List<Map<String, dynamic>>>(
         valueListenable: WishlistService().itemsNotifier,
         builder: (context, savedItems, _) {
@@ -310,8 +281,19 @@ class ProductSaveScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: CircleAvatar(
-                        backgroundColor: Colors.grey[800],
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF8B5A8C),
+                              Color(0xFF7CB670),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
                         child: const Icon(Icons.shopping_cart_outlined,
                             color: Colors.white, size: 20),
                       ),

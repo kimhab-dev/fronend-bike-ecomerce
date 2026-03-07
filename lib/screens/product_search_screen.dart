@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/cart_service.dart';
 import '../services/wishlist_service.dart';
-import 'addToCard_screen.dart';
+
 import 'product_detail_screen.dart';
+import '../widgets/custom_app_bar.dart';
 
 class BikeSearchScreen extends StatefulWidget {
   const BikeSearchScreen({super.key});
@@ -75,57 +76,7 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A121F), // Dark purple background
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text("BIG BIKE",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        actions: [
-          ValueListenableBuilder<List<CartItem>>(
-            valueListenable: CartService().itemsNotifier,
-            builder: (context, items, _) {
-              final int totalItems =
-                  items.fold(0, (sum, item) => sum + item.quantity);
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const AddToCardScreen()),
-                      );
-                    },
-                  ),
-                  if (totalItems > 0)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          totalItems.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: const CustomAppBar(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
@@ -183,7 +134,14 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF2D2433),
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF8B5A8C),
+                  Color(0xFF7CB670),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.tune, color: Colors.white),
@@ -498,8 +456,19 @@ class _BikeSearchScreenState extends State<BikeSearchScreen> {
                               ),
                             );
                           },
-                          child: CircleAvatar(
-                            backgroundColor: Colors.grey[800],
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFF8B5A8C),
+                                  Color(0xFF7CB670),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
                             child: const Icon(Icons.shopping_cart_outlined,
                                 color: Colors.white, size: 20),
                           ),

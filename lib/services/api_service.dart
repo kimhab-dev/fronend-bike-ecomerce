@@ -104,7 +104,7 @@ class ApiService {
   }
 
   static Future<List<dynamic>> getCart() async {
-    final response = await http.get(Uri.parse("$baseUrl/cart"));
+    final response = await http.get(Uri.parse("$baseUrl/card"));
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded is Map && decoded.containsKey('data')) {
@@ -124,7 +124,7 @@ class ApiService {
 
   static Future<void> addToCart(String productId, int quantity) async {
     final response = await http.post(
-      Uri.parse("$baseUrl/cart"), // Endpoint for add to cart
+      Uri.parse("$baseUrl/card"), // Endpoint for add to cart
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         "productId": productId,
@@ -133,6 +133,35 @@ class ApiService {
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception("Failed to add to cart");
+    }
+  }
+
+  static Future<List<dynamic>> getWishlist() async {
+    final response = await http.get(Uri.parse("$baseUrl/wishlist"));
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded.containsKey('data')) {
+        return decoded['data'] as List<dynamic>;
+      }
+      if (decoded is List) {
+        return decoded;
+      }
+      return [];
+    } else {
+      throw Exception("Failed to load wishlist");
+    }
+  }
+
+  static Future<void> toggleWishlist(String productId) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/wishlist"),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "productId": productId,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception("Failed to toggle wishlist item");
     }
   }
 }

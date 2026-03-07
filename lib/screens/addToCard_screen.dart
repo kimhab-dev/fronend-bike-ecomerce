@@ -228,7 +228,14 @@ class _AddToCardScreenState extends State<AddToCardScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: const BoxDecoration(
-                                color: Color(0xFF7B5A96),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFF8B5A8C),
+                                    Color(0xFF7CB670),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.add,

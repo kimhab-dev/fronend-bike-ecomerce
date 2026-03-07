@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_app_bar.dart';
 
 class ProfileUserScreen extends StatelessWidget {
   const ProfileUserScreen({super.key});
@@ -7,41 +8,7 @@ class ProfileUserScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF100A16),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF100A16),
-        elevation: 0,
-        title: RichText(
-          text: const TextSpan(
-            children: [
-              TextSpan(
-                  text: 'BIG',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                      letterSpacing: 1.0)),
-              TextSpan(
-                  text: 'BIKE',
-                  style: TextStyle(
-                      color: Color(0xFF8B5A8C),
-                      fontWeight: FontWeight.normal,
-                      fontSize: 22,
-                      letterSpacing: 1.0)),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings_outlined, color: Colors.grey[400]),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: const CustomAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Column(
@@ -59,7 +26,7 @@ class ProfileUserScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Center(
               child: Text(
-                'BigBike Store v2.0.0',
+                'HAB MOTO Store v2.0.0',
                 style: TextStyle(color: Colors.grey[700], fontSize: 12),
               ),
             ),

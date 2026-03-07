@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart'; // Ensure this path is correct
 import '../services/cart_service.dart';
-import 'addToCard_screen.dart';
+
 import 'product_detail_screen.dart'; // Needed for navigation to details
 import 'product_search_screen.dart';
+import '../widgets/custom_app_bar.dart';
 
 class ProductListScreen extends StatefulWidget {
   final VoidCallback? onSearchTap;
@@ -36,6 +37,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF120C17), // Deep Dark Purple
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -43,7 +45,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
+                const SizedBox(height: 10),
                 const SizedBox(height: 30),
                 _buildHeroText(),
                 const SizedBox(height: 20),
@@ -186,70 +188,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   // --- UI COMPONENTS ---
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              children: [
-                TextSpan(text: "BIG", style: TextStyle(color: Colors.white)),
-                TextSpan(
-                    text: "BIKE", style: TextStyle(color: Color(0xFFBB86FC))),
-              ],
-            ),
-          ),
-          ValueListenableBuilder<List<CartItem>>(
-            valueListenable: CartService().itemsNotifier,
-            builder: (context, items, _) {
-              final int totalItems =
-                  items.fold(0, (sum, item) => sum + item.quantity);
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const AddToCardScreen()),
-                      );
-                    },
-                  ),
-                  if (totalItems > 0)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          totalItems.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildHeroText() {
     return Column(
@@ -478,7 +416,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7B5A96),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF8B5A8C),
+                                Color(0xFF7CB670),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(Icons.add_shopping_cart,
