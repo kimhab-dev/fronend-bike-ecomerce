@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../services/api_service.dart';
+import 'payment_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -121,7 +122,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
               ),
-              _buildBottomActionButtons(),
+              _buildBottomActionButtons(
+                  name, product['price']?.toString() ?? '0'),
             ],
           ),
         );
@@ -660,7 +662,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   // 6. Floating Action Buttons (Add to Cart / Buy Now)
-  Widget _buildBottomActionButtons() {
+  Widget _buildBottomActionButtons(String productName, String priceStr) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -708,7 +710,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15))),
-                onPressed: () {},
+                onPressed: () {
+                  final price = double.tryParse(priceStr) ?? 0.0;
+                  final orderItems = [
+                    {
+                      "product": widget.productId,
+                      "name": productName,
+                      "qty": 1,
+                      "price": price,
+                    }
+                  ];
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PaymentScreen(
+                        orderItems: orderItems,
+                        totalPrice: price,
+                      ),
+                    ),
+                  );
+                },
                 child: const Text("Buy Now",
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold)),

@@ -142,4 +142,8 @@ class CartService {
     }
     return total;
   }
+
+  void clearCart() {
+    itemsNotifier.value = [];
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/cart_service.dart';
+import 'payment_screen.dart';
 
 class AddToCardScreen extends StatefulWidget {
   const AddToCardScreen({super.key});
@@ -428,7 +429,40 @@ class _AddToCardScreenState extends State<AddToCardScreen> {
               ],
             ),
             child: InkWell(
-              onTap: () {},
+              onTap: () {
+                final currentItems = CartService().items;
+                if (currentItems.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Your cart is empty!')),
+                  );
+                  return;
+                }
+
+                final orderItems = currentItems
+                    .map((item) => {
+                          "product": item.id,
+                          "name": item.name,
+                          "qty": item.quantity,
+                          "price": item.price,
+                        })
+                    .toList();
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaymentScreen(
+                      orderItems: orderItems,
+                      totalPrice: total,
+                    ),
+                  ),
+                ).then((success) {
+                  if (success == true) {
+                    CartService().clearCart();
+                    // Optional: pop back to home if desired
+                    Navigator.pop(context);
+                  }
+                });
+              },
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 18),

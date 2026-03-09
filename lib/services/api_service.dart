@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl = "http://10.0.2.2:5000/api";
+  static String? authToken;
 
   /// Fetches the list of all products. An optional [category]
   /// may be supplied to filter on the server side. The API is
@@ -177,7 +178,11 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      if (data['token'] != null) {
+        authToken = data['token'];
+      }
+      return data;
     } else {
       throw Exception("Failed to login");
     }
@@ -197,9 +202,52 @@ class ApiService {
 
     // Some APIs return 201 Created for registration
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      if (data['token'] != null) {
+        authToken = data['token'];
+      }
+      return data;
     } else {
       throw Exception("Failed to register");
+    }
+  }
+
+  static Future<Map<String, dynamic>> createOrder({
+    required Map<String, dynamic> orderData,
+  }) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/orders"),
+      headers: {
+        'Content-Type': 'application/json',
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
+      body: json.encode(orderData),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception(
+          "Failed to create order: ${response.statusCode} - ${response.body}");
+    }
+  }
+
+  static Future<Map<String, dynamic>> confirmPayment({
+    required String orderId,
+  }) async {
+    final response = await http.put(
+      Uri.parse("$baseUrl/orders/$orderId/pay"),
+      headers: {
+        'Content-Type': 'application/json',
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception(
+          "Failed to confirm payment: ${response.statusCode} - ${response.body}");
     }
   }
 }
