@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:lottie/lottie.dart';
 import '../services/api_service.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -20,10 +19,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   bool _isLoading = true;
   String? _qrString;
-  String? _orderId;
   String _errorMessage = '';
-  bool _isPaymentConfirmed = false;
-  bool _isConfirming = false;
 
   // ABA / Bakong Red Theme
   final Color _abaRed = const Color(0xFFD32F2F);
@@ -47,11 +43,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         orderData: orderData,
       );
 
-      // Assuming API returns qrString and order tracking info
+      // Assuming API returns qrString
       // e.g. { "_id": "...", "qrString": "..." }
       if (mounted) {
         setState(() {
-          _orderId = response['_id'] ?? response['id'];
           // Fallback if the backend uses another key for qrString
           _qrString = response['qrString'] ?? response['qrCode'];
           _isLoading = false;
@@ -65,96 +60,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       }
     }
-  }
-
-  Future<void> _confirmPayment() async {
-    if (_orderId == null) return;
-
-    setState(() => _isConfirming = true);
-    try {
-      await ApiService.confirmPayment(
-        orderId: _orderId!,
-      );
-      if (mounted) {
-        setState(() {
-          _isConfirming = false;
-          _isPaymentConfirmed = true;
-        });
-        _showSuccessDialog();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isConfirming = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Lottie animation for success
-              SizedBox(
-                height: 150,
-                width: 150,
-                child: Lottie.network(
-                  'https://lottie.host/972cf7f7-b2e8-4aba-8dc9-76228addb4e0/N2a2656wU8.json',
-                  repeat: false,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.check_circle,
-                        color: Colors.green, size: 100);
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Payment Successful!',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Your order has been paid and is being processed.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _abaRed,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: () {
-                    // Pop dialog
-                    Navigator.pop(context);
-                    // Return true to caller screen indicating success
-                    Navigator.pop(context, true);
-                  },
-                  child: const Text('Back to Home',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -330,40 +235,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 )
               ],
             ),
-          ),
-          const SizedBox(height: 40),
-
-          // Confirm Button
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed:
-                  _isConfirming || _isPaymentConfirmed ? null : _confirmPayment,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _abaRed,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              child: _isConfirming
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Confirm Payment',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Only click confirm after you have successfully scanned and paid.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
       ),

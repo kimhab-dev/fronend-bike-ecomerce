@@ -69,7 +69,11 @@ class ApiService {
     final response = await http.get(Uri.parse("$baseUrl/categories"));
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final decoded = json.decode(response.body);
+      if (decoded is Map && decoded.containsKey('data')) {
+        return decoded['data'] as List<dynamic>;
+      }
+      return decoded as List<dynamic>;
     } else {
       throw Exception("Failed to load categories");
     }
@@ -105,7 +109,15 @@ class ApiService {
   }
 
   static Future<List<dynamic>> getCart() async {
-    final response = await http.get(Uri.parse("$baseUrl/card"));
+    final response = await http.get(
+      Uri.parse("$baseUrl/card"),
+      headers: {
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
+    );
+    print('GET /card status: \${response.statusCode}');
+    print('GET /card body: \${response.body}');
+    
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded is Map && decoded.containsKey('data')) {
@@ -126,18 +138,28 @@ class ApiService {
   static Future<void> addToCart(String productId) async {
     final response = await http.post(
       Uri.parse("$baseUrl/card"), // Endpoint for add to cart
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
       body: json.encode({
         "productId": productId,
       }),
     );
+    print('POST /card status: \${response.statusCode}');
+    print('POST /card body: \${response.body}');
     if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception("Failed to add to cart");
     }
   }
 
   static Future<List<dynamic>> getWishlist() async {
-    final response = await http.get(Uri.parse("$baseUrl/wishlist"));
+    final response = await http.get(
+      Uri.parse("$baseUrl/wishlist"),
+      headers: {
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
+    );
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded is Map && decoded.containsKey('data')) {
@@ -155,7 +177,10 @@ class ApiService {
   static Future<void> toggleWishlist(String productId) async {
     final response = await http.post(
       Uri.parse("$baseUrl/wishlist"),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        if (authToken != null) 'Authorization': 'Bearer $authToken',
+      },
       body: json.encode({
         "productId": productId,
       }),

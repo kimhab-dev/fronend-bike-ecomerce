@@ -5,8 +5,19 @@ import '../services/api_service.dart';
 import 'product_detail_screen.dart';
 import '../widgets/custom_app_bar.dart';
 
-class ProductSaveScreen extends StatelessWidget {
+class ProductSaveScreen extends StatefulWidget {
   const ProductSaveScreen({super.key});
+
+  @override
+  State<ProductSaveScreen> createState() => _ProductSaveScreenState();
+}
+
+class _ProductSaveScreenState extends State<ProductSaveScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WishlistService().loadWishlist();
+  }
 
   @override
   Widget build(BuildContext context) {
