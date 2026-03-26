@@ -111,7 +111,7 @@ class CartService {
 
     // API Post
     try {
-      await ApiService.addToCart(item.id, 1);
+      await ApiService.addToCart(item.id);
     } catch (e) {
       debugPrint("Failed to sync cart additions: $e");
     }

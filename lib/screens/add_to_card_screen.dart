@@ -11,6 +11,12 @@ class AddToCardScreen extends StatefulWidget {
 class _AddToCardScreenState extends State<AddToCardScreen> {
   String _selectedPaymentMethod = 'Credit Card';
 
+  @override
+  void initState() {
+    super.initState();
+    CartService().loadCart();
+  }
+
   // Helper colors extracted from design
   final Color bgColor = const Color(0xFF100A15);
   final Color cardColor = const Color(0xFF20162A);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import '../services/api_service.dart'; // Ensure this path is correct
 import '../services/cart_service.dart';
 
@@ -48,10 +49,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 const SizedBox(height: 10),
                 const SizedBox(height: 30),
                 _buildHeroText(),
-                const SizedBox(height: 20),
-                _buildSearchBar(),
                 const SizedBox(height: 25),
-                _buildFeatureIcons(),
+                _buildImageSwiper(),
+                const SizedBox(height: 25),
+                _buildSearchBar(),
                 const SizedBox(height: 30),
                 _buildCategoryTabs(),
                 const SizedBox(height: 25),
@@ -243,34 +244,47 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildFeatureIcons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _featureBox(Icons.bolt, "Fast"),
-        _featureBox(Icons.workspace_premium, "Premium"),
-        _featureBox(Icons.shield_outlined, "Safe"),
-      ],
-    );
-  }
+  Widget _buildImageSwiper() {
+    final List<String> imgList = [
+      'https://imgd.aeplcdn.com/664x374/n/cw/ec/195355/s1000rr-side-fairing.jpeg?isig=0&q=80',
+      'https://cdn.visordown.com/2024-09/Kawasaki%20Ninja%20H2R.JPG?width=900&format=webp&aspect_ratio=16:9',
+      'https://images.ctfassets.net/x7j9qwvpvr5s/43adRuY33iuCayAyMy3wTw/5545b174f876fc95ffcfff3d643c4d23/Ducati-MY25-Panigale-V4-overview-carousel-hero-link-1600x650-01.jpg',
+    ];
 
-  Widget _featureBox(IconData icon, String label) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 180.0,
+        autoPlay: true,
+        enlargeCenterPage: true,
+        aspectRatio: 16 / 9,
+        autoPlayCurve: Curves.fastOutSlowIn,
+        enableInfiniteScroll: true,
+        autoPlayAnimationDuration: const Duration(milliseconds: 800),
+        viewportFraction: 0.85,
       ),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white70, size: 28),
-          const SizedBox(height: 8),
-          Text(label,
-              style: const TextStyle(color: Colors.white70, fontSize: 12)),
-        ],
-      ),
+      items: imgList
+          .map((item) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: Image.network(
+                    item,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                  ),
+                ),
+              ))
+          .toList(),
     );
   }
 
@@ -360,71 +374,124 @@ class _ProductListScreenState extends State<ProductListScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E1625),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
-                child: _buildProductImage(imageUrl),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(8)),
-                  child: const Text("NEW",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold)),
+          Expanded(
+            flex: 5,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: _buildProductImage(imageUrl),
                 ),
-              ),
-            ],
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF8B5A8C), Color(0xFF7CB670)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text("NEW",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5)),
+                  ),
+                ),
+              ],
+            ),
           ),
           Expanded(
+            flex: 4,
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (category.isNotEmpty) ...[
+                        Text(category.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: Colors.purpleAccent.withOpacity(0.8),
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0)),
+                        const SizedBox(height: 4),
+                      ],
+                      Text(name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 2),
+                      Text(type.isNotEmpty ? type : 'Top Speed: N/A',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 11)),
+                    ],
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("\$$price",
                           style: const TextStyle(
-                              color: Color(0xFF90EE90),
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold)),
+                              color: Color(0xFF00FFCC),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800)),
                       GestureDetector(
                         onTap: onAddCart,
                         child: Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF8B5A8C),
-                                Color(0xFF7CB670),
-                              ],
+                              colors: [Color(0xFF8B5A8C), Color(0xFF7CB670)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(8),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF7CB670).withOpacity(0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              )
+                            ],
                           ),
                           child: const Icon(Icons.add_shopping_cart,
                               color: Colors.white, size: 16),
@@ -432,19 +499,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(type,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                  if (category.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text("Category: $category",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 10)),
-                  ],
                 ],
               ),
             ),
@@ -456,8 +510,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Widget _buildProductImage(String imageUrl) {
     return SizedBox(
-      height: 140,
       width: double.infinity,
+      height: double.infinity,
       child: imageUrl.isEmpty
           ? Container(
               color: Colors.black26,

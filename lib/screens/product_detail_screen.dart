@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../services/api_service.dart';
+import '../services/cart_service.dart';
 import 'payment_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -122,12 +123,61 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
               ),
+              _buildFixedTopBar(context),
               _buildBottomActionButtons(
-                  name, product['price']?.toString() ?? '0'),
+                  product, name, product['price']?.toString() ?? '0', mainImageUrl),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFixedTopBar(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.black45,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black45,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                      icon: const Icon(Icons.favorite_border,
+                          color: Colors.white),
+                      onPressed: () {}),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black45,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                      icon: const Icon(Icons.share_outlined,
+                          color: Colors.white),
+                      onPressed: () {}),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 
@@ -207,32 +257,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ],
                 ),
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                        icon: const Icon(Icons.favorite_border,
-                            color: Colors.white),
-                        onPressed: () {}),
-                    IconButton(
-                        icon: const Icon(Icons.share_outlined,
-                            color: Colors.white),
-                        onPressed: () {}),
-                  ],
-                )
-              ],
-            ),
-          ),
         ),
         Positioned(
           bottom: 20,
@@ -662,7 +686,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   // 6. Floating Action Buttons (Add to Cart / Buy Now)
-  Widget _buildBottomActionButtons(String productName, String priceStr) {
+  Widget _buildBottomActionButtons(
+      Map<String, dynamic> product, String productName, String priceStr, String imageUrl) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -676,6 +701,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Row(
           children: [
             Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E1625),
+                    shadowColor: Colors.transparent,
+                    side: const BorderSide(color: Color(0xFF8B5A8C), width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15))),
+                onPressed: () {
+                  final doublePrice = double.tryParse(priceStr) ?? 0.0;
+                  String categoryName = '';
+                  if (product['category'] != null) {
+                    final cat = product['category'];
+                    if (cat is Map && cat['name'] != null) {
+                      categoryName = cat['name'].toString();
+                    }
+                  }
+                  CartService().addToCart(CartItem(
+                    id: product['_id']?.toString() ??
+                        product['id']?.toString() ??
+                        DateTime.now().toString(),
+                    name: productName,
+                    edition: categoryName.isNotEmpty ? categoryName : 'Standard Edition',
+                    price: doublePrice,
+                    imageUrl: imageUrl,
+                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('$productName added to cart!'),
+                      backgroundColor: const Color(0xFF7B5A96),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: const Text("Add to Cart",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
@@ -687,6 +753,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8B5A8C).withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -695,45 +768,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15))),
-                  onPressed: () {},
-                  child: const Text("Add to Cart",
+                  onPressed: () {
+                    final price = double.tryParse(priceStr) ?? 0.0;
+                    final orderItems = [
+                      {
+                        "product": widget.productId,
+                        "name": productName,
+                        "qty": 1,
+                        "price": price,
+                      }
+                    ];
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PaymentScreen(
+                          orderItems: orderItems,
+                          totalPrice: price,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text("Buy Now",
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8E244D),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15))),
-                onPressed: () {
-                  final price = double.tryParse(priceStr) ?? 0.0;
-                  final orderItems = [
-                    {
-                      "product": widget.productId,
-                      "name": productName,
-                      "qty": 1,
-                      "price": price,
-                    }
-                  ];
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PaymentScreen(
-                        orderItems: orderItems,
-                        totalPrice: price,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text("Buy Now",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

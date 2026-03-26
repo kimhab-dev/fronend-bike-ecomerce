@@ -123,13 +123,12 @@ class ApiService {
     }
   }
 
-  static Future<void> addToCart(String productId, int quantity) async {
+  static Future<void> addToCart(String productId) async {
     final response = await http.post(
       Uri.parse("$baseUrl/card"), // Endpoint for add to cart
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         "productId": productId,
-        "quantity": quantity,
       }),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
